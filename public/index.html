@@ -315,7 +315,7 @@ function updatePhysics(dt) {
   if (dx) me.facing = dx;
   me.vx = dx * MOVE_SPEED;
 
-    // Прыжок (с бустом, если стоим на голове друга)
+  // Прыжок (с бустом, если стоим на голове друга)
   if ((keys['w'] || keys['ц'] || keys['arrowup'] || keys[' ']) && me.onGround) {
     const onFriend = other.online &&
       Math.abs(me.y + PLAYER_H - other.y) < 15 &&
@@ -325,32 +325,21 @@ function updatePhysics(dt) {
     me.onGround = false;
     sfxJump();
     if (onFriend) {
-      // Визуальный эффект буста
       spawnDust(me.x + PLAYER_W/2, me.y + PLAYER_H, 10);
     }
-  }
-    me.vy = -JUMP_FORCE; me.onGround = false; sfxJump();
   }
 
   me.vy += GRAVITY * dt;
   if (me.vy > 1200) me.vy = 1200;
 
   const plats = [...lvl.platforms];
-    // Друг как платформа (расширенная зона захвата)
+  // Друг как платформа (расширенная зона захвата)
   if (other.online) {
     const nearTopOfFriend = me.y + PLAYER_H <= other.y + 20 && me.y + PLAYER_H >= other.y - 5;
     const horizOverlap = me.x + PLAYER_W > other.x + 4 && me.x < other.x + PLAYER_W - 4;
     if (nearTopOfFriend && horizOverlap && me.vy >= 0) {
-      plats.push({
-        x: other.x,
-        y: other.y,
-        w: PLAYER_W,
-        h: PLAYER_H,
-        isPlayer: true
-      });
+      plats.push({ x:other.x, y:other.y, w:PLAYER_W, h:PLAYER_H, isPlayer:true });
     }
-  }
-    plats.push({ x:other.x, y:other.y, w:PLAYER_W, h:PLAYER_H, isPlayer:true });
   }
 
   me.x += me.vx * dt;
@@ -801,11 +790,13 @@ function showScreen(name) {
   gameRunning = false;
 }
 
+// Цветовые кнопки (палитра)
 const colorsEl = document.getElementById('colors');
 COLORS.forEach((c, i) => {
   const b = document.createElement('div');
   b.className = 'color-btn' + (i === 0 ? ' active' : '');
-  b.style.background = c; b.style.color = c;
+  b.style.background = c;
+  b.style.color = c;
   b.onclick = () => {
     myColor = c;
     document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
