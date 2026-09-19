@@ -28,15 +28,6 @@ function shuffle(arr) {
   }
   return a;
 }
-function resetPuzzle(room) {
-  room.puzzle = {
-    keyCollected: false, doorOpen: false,
-    plates: [false, false, false, false],
-    plateSequence: shuffle([0, 1, 2, 3]),
-    nextPlateIdx: 0, leverPulled: false, levers: [false, false]
-  };
-  room.doorState = { p1: false, p2: false };
-}
 function updateDoor(room) {
   const pz = room.puzzle, lv = room.level;
   if (lv === 1) pz.doorOpen = pz.keyCollected;
@@ -49,17 +40,21 @@ function updateDoor(room) {
   else if (lv === 8) pz.doorOpen = pz.keyCollected;
   else if (lv === 9) pz.doorOpen = pz.plates[0] && pz.plates[1] && pz.keyCollected;
   else if (lv === 10) pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
-  else if (lv === 11) pz.doorOpen = true;
-  else if (lv === 12) pz.doorOpen = true;
-  else if (lv === 13) pz.doorOpen = true;
-  else if (lv === 14) pz.doorOpen = true;
-  else if (lv === 15) pz.doorOpen = true;
-  else if (lv === 16) pz.doorOpen = true;
-  else if (lv === 17) pz.doorOpen = true;
+  else if (lv >= 11 && lv <= 17) pz.doorOpen = true;
   else if (lv === 18) pz.doorOpen = pz.leverPulled;
   else if (lv === 19) pz.doorOpen = pz.levers[0] && pz.levers[1];
   else if (lv === 20) pz.doorOpen = pz.keyCollected;
   else pz.doorOpen = false;
+}
+function resetPuzzle(room) {
+  room.puzzle = {
+    keyCollected: false, doorOpen: false,
+    plates: [false, false, false, false],
+    plateSequence: shuffle([0, 1, 2, 3]),
+    nextPlateIdx: 0, leverPulled: false, levers: [false, false]
+  };
+  room.doorState = { p1: false, p2: false };
+  updateDoor(room); // ← ФИКС: сразу применяем правила двери для текущего уровня
 }
 function checkLevelDone(room) {
   if (room.puzzle.doorOpen && room.doorState.p1 && room.doorState.p2) {
@@ -161,7 +156,7 @@ wss.on('connection', function(ws) {
         updateDoor(room); changed = true;
         setTimeout(function() {
           const r = rooms.get(roomCode);
-          if (!r || r.level !== 4 || r.puzzle.doorOpen) return;
+          if (!r || (r.level !== 4 && r.level !== 19) || r.puzzle.doorOpen) return;
           r.puzzle.levers = [false, false];
           broadcast(r, { type: 'puzzle', state: r.puzzle });
         }, 3000);
