@@ -268,18 +268,19 @@ var LEVELS = {
     door:{x:900,y:320,w:40,h:60}, spawn:[{x:30,y:480},{x:90,y:480}],
          
     hint:"🪜 Платформы да ну нафик - едут вместе с вами!женщина отдайте дневник" }),
-  13: L({ name:"Мигающие", bg:"#18121a", wall:"#32223a", floor:"#1f1525", plat:"#40284a",
+    13: L({ name:"Мигающие", bg:"#18121a", wall:"#32223a", floor:"#1f1525", plat:"#40284a",
     torches:[{x:120,y:280},{x:500,y:200},{x:880,y:280}],
-    spikes:[{x:0,y:545,w:1000,h:5}],
+    platforms:[...WALLS,{x:0,y:520,w:180,h:40},{x:820,y:520,w:180,h:40}],
+    spikes:[{x:180,y:545,w:640,h:5}],
     vanishPlats:[
-      {x:150,y:450,w:90,h:15,onTime:2,offTime:1.5,phase:0},
-      {x:320,y:400,w:90,h:15,onTime:2,offTime:1.5,phase:0.7},
-      {x:490,y:350,w:90,h:15,onTime:2,offTime:1.5,phase:1.4},
-      {x:660,y:400,w:90,h:15,onTime:2,offTime:1.5,phase:2.1},
-      {x:830,y:450,w:90,h:15,onTime:2,offTime:1.5,phase:2.8}
+      {x:190,y:430,w:90,h:15,onTime:2,offTime:1.5,phase:0},
+      {x:340,y:360,w:90,h:15,onTime:2,offTime:1.5,phase:0.7},
+      {x:490,y:300,w:90,h:15,onTime:2,offTime:1.5,phase:1.4},
+      {x:640,y:360,w:90,h:15,onTime:2,offTime:1.5,phase:2.1},
+      {x:790,y:430,w:90,h:15,onTime:2,offTime:1.5,phase:2.8}
     ],
-    door:{x:920,y:390,w:40,h:60}, spawn:[{x:60,y:480},{x:120,y:480}],
-    hint:"⏱ Платформы исчезают — ждите момент!" }),
+    door:{x:900,y:460,w:40,h:60}, spawn:[{x:60,y:480},{x:120,y:480}],
+    hint:"женщина отдайте дневник" }),
   14: L({ name:"Лазерный зал", bg:"#181018", wall:"#3a2030", floor:"#1f1015", plat:"#402028",
     torches:[{x:500,y:200}],
     lasers:[
