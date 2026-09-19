@@ -257,14 +257,17 @@ var LEVELS = {
     torches:[{x:120,y:280},{x:500,y:200},{x:880,y:280}],
     platforms:[...WALLS,{x:0,y:530,w:150,h:30}],
     spikes:[{x:150,y:545,w:850,h:5}],
-    movingPlats:[
+        movingPlats:[
       {x:230,y:420,w:100,h:15,axis:'y',range:50,speed:1.5,phase:0},
       {x:400,y:320,w:100,h:15,axis:'y',range:50,speed:1.5,phase:1.5},
       {x:570,y:420,w:100,h:15,axis:'y',range:50,speed:1.5,phase:3},
-      {x:740,y:320,w:100,h:15,axis:'y',range:50,speed:1.5,phase:4.5}
+      {x:740,y:320,w:100,h:15,axis:'y',range:50,speed:1.5,phase:4.5},
+      {x:830,y:300,w:120,h:15,axis:'y',range:30,speed:1.2,phase:2.2}
     ],
-    door:{x:900,y:260,w:40,h:60}, spawn:[{x:30,y:480},{x:90,y:480}],
-    hint:"🪜 Платформы двигаются — едут вместе с вами!" }),
+    platforms:[...WALLS,{x:0,y:530,w:150,h:30},{x:850,y:380,w:150,h:20}],
+    door:{x:900,y:320,w:40,h:60}, spawn:[{x:30,y:480},{x:90,y:480}],
+         
+    hint:"🪜 Платформы да ну нафик - едут вместе с вами!женщина отдайте дневник" }),
   13: L({ name:"Мигающие", bg:"#18121a", wall:"#32223a", floor:"#1f1525", plat:"#40284a",
     torches:[{x:120,y:280},{x:500,y:200},{x:880,y:280}],
     spikes:[{x:0,y:545,w:1000,h:5}],
@@ -310,7 +313,7 @@ var LEVELS = {
       {x:760,y:420,w:80,h:15,onTime:1.5,offTime:0.8,phase:2.4}
     ],
     door:{x:920,y:380,w:40,h:60}, spawn:[{x:20,y:480},{x:70,y:480}],
-    hint:"⚡ Быстро! Платформы исчезают быстро." }),
+    hint:"⚡ Быстро! фантайййм шкила 8а одаа." }),
   17: L({ name:"Лабиринт", bg:"#101820", wall:"#203040", floor:"#101820", plat:"#283848",
     torches:[{x:500,y:200}],
     lasers:[
