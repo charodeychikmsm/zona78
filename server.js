@@ -149,6 +149,14 @@ setInterval(function () {
   }
 }, 50);
 
+// ==== СИНХРОНИЗАЦИЯ ВРЕМЕНИ ====
+setInterval(function () {
+  const t = Date.now();
+  rooms.forEach(function (room) {
+    broadcast(room, { type: 'time', t: t });
+  });
+}, 100);
+
 wss.on('connection', function (ws) {
   let roomCode = null, playerId = null;
 
