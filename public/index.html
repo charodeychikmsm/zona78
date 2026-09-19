@@ -8,101 +8,78 @@
   html, body { width: 100%; height: 100%; overflow: hidden; background: #000;
     font-family: 'Courier New', monospace; user-select: none; }
   canvas { display: block; }
-
-  #menu {
-    position: fixed; inset: 0;
+  #menu { position: fixed; inset: 0;
     background: radial-gradient(ellipse at center, #1a1a1d 0%, #000 100%);
     display: flex; align-items: center; justify-content: center;
-    flex-direction: column; color: #fff; z-index: 100; padding: 20px; text-align: center;
-  }
-  #menu h1 {
-    font-size: clamp(48px, 10vw, 96px); letter-spacing: 12px; font-weight: 900;
-    color: #ffaa44; font-family: 'Courier New', monospace;
-    text-shadow: 0 0 20px rgba(255,170,68,0.5), 0 0 40px rgba(255,170,68,0.3), 0 4px 0 #8b5a1f;
-    margin-bottom: 8px;
-  }
+    flex-direction: column; color: #fff; z-index: 100; padding: 20px; text-align: center; }
+  #menu h1 { font-size: clamp(48px, 10vw, 96px); letter-spacing: 12px; font-weight: 900;
+    color: #ffaa44; text-shadow: 0 0 20px rgba(255,170,68,0.5), 0 0 40px rgba(255,170,68,0.3), 0 4px 0 #8b5a1f;
+    margin-bottom: 8px; }
   #menu .subtitle { color: #666; font-size: 13px; letter-spacing: 5px; margin-bottom: 35px; text-transform: uppercase; }
-  .btn {
-    padding: 16px 40px; font-size: 16px; font-family: 'Courier New', monospace;
+  .btn { padding: 16px 40px; font-size: 16px; font-family: 'Courier New', monospace;
     font-weight: bold; letter-spacing: 3px; border: 2px solid #ffaa44; border-radius: 4px;
     background: rgba(255,170,68,0.05); color: #ffaa44; cursor: pointer;
-    transition: all 0.2s; text-transform: uppercase; margin: 8px; min-width: 280px;
-  }
+    transition: all 0.2s; text-transform: uppercase; margin: 8px; min-width: 280px; }
   .btn:hover { background: #ffaa44; color: #1a1a1d; box-shadow: 0 0 30px rgba(255,170,68,0.6); }
   .btn.ghost { border-color: #444; color: #888; }
   .btn.ghost:hover { background: #333; color: #ccc; box-shadow: none; }
-  .input {
-    padding: 14px 20px; font-size: 22px; font-family: 'Courier New', monospace;
+  .input { padding: 14px 20px; font-size: 22px; font-family: 'Courier New', monospace;
     letter-spacing: 8px; text-align: center; background: rgba(255,255,255,0.05);
     border: 2px solid #444; border-radius: 4px; color: #fff; outline: none;
-    width: 260px; text-transform: uppercase;
-  }
+    width: 260px; text-transform: uppercase; }
   .input:focus { border-color: #ffaa44; }
-
   #colors { display: flex; gap: 10px; margin: 15px 0 25px 0; }
   .color-btn { width: 38px; height: 38px; border: 2px solid transparent;
     border-radius: 4px; cursor: pointer; transition: all 0.2s; }
   .color-btn.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 20px currentColor; }
-
   #hud { position: fixed; top: 0; left: 0; right: 0; padding: 15px 30px;
     display: flex; justify-content: space-between; align-items: flex-start;
     z-index: 10; pointer-events: none;
     background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
   #hud .title { font-size: 30px; letter-spacing: 8px; font-weight: 900; color: #ffaa44;
-    text-shadow: 0 0 20px rgba(255,170,68,0.5); font-family: 'Courier New', monospace; }
+    text-shadow: 0 0 20px rgba(255,170,68,0.5); }
   #hud .info { color: #ccc; font-size: 13px; letter-spacing: 2px; text-align: right; line-height: 1.7; }
   #hud .room-code { color: #ffaa44; font-weight: bold; letter-spacing: 4px; }
-
   #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
     color: #ffaa44; font-size: 15px; letter-spacing: 2px; text-align: center;
     background: rgba(0,0,0,0.8); padding: 12px 24px; border-radius: 4px;
     border: 1px solid rgba(255,170,68,0.3); z-index: 10; pointer-events: none;
-    font-family: 'Courier New', monospace; transition: opacity 0.5s; }
+    transition: opacity 0.5s; }
   #hint.hidden { opacity: 0; pointer-events: none; }
-
   .hidden { display: none !important; }
-
   #status { position: fixed; bottom: 15px; right: 15px; color: #4ade80;
-    font-size: 12px; font-family: 'Courier New', monospace; z-index: 10; }
+    font-size: 12px; z-index: 10; }
   #status.bad { color: #f87171; }
-
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
   .pulse { animation: pulse 1.5s infinite; }
 </style>
 </head>
 <body>
-
 <canvas id="game"></canvas>
-
 <div id="hud" class="hidden">
   <div class="title">ZONA78</div>
   <div class="info">
-    <div>Уровень <span id="hud-level">1</span>: <span id="hud-level-name">—</span></div>
+    <div>Уровень <span id="hud-level">1</span>/10: <span id="hud-level-name">—</span></div>
     <div>Комната: <span class="room-code" id="hud-code">----</span></div>
   </div>
 </div>
-
 <div id="hint" class="hidden"></div>
 <div id="status">не подключено</div>
 
 <div id="menu">
   <h1>ZONA78</h1>
   <div class="subtitle">кооперативная головоломка</div>
-
   <div id="menu-main">
     <div id="colors"></div>
     <button class="btn" id="btn-create">Создать комнату</button><br>
     <button class="btn" id="btn-join">Войти в комнату</button>
   </div>
-
   <div id="menu-join" class="hidden">
     <input class="input" id="join-input" placeholder="КОД" maxlength="4" autocomplete="off">
     <br><br>
-    <button class="btn" id="btn-join-go">Подключиться</button>
-    <br>
+    <button class="btn" id="btn-join-go">Подключиться</button><br>
     <button class="btn ghost" id="btn-back">Назад</button>
   </div>
-
   <div id="menu-wait" class="hidden">
     <p style="color:#888;letter-spacing:3px;margin-bottom:10px">КОД КОМНАТЫ</p>
     <h2 style="font-size:64px;letter-spacing:20px;color:#ffaa44;margin-bottom:25px" id="wait-code">----</h2>
@@ -110,93 +87,180 @@
     <br><br>
     <button class="btn ghost" id="btn-cancel">Отмена</button>
   </div>
-
   <div id="menu-win" class="hidden">
     <h2 style="color:#ffaa44;font-size:42px;margin-bottom:20px">🏆 ПОБЕДА!</h2>
-    <p style="color:#aaa;letter-spacing:2px;margin-bottom:30px">Вы прошли все 3 уровня ZONA78</p>
+    <p style="color:#aaa;letter-spacing:2px;margin-bottom:30px">Вы прошли все 10 уровней ZONA78</p>
     <button class="btn" id="btn-restart">Играть снова</button>
   </div>
 </div>
 
 <script>
 // ==================== КОНСТАНТЫ ====================
-const GRAVITY = 1800, MOVE_SPEED = 320, JUMP_FORCE = 850;
+const GRAVITY = 1800, MOVE_SPEED = 320, JUMP_FORCE = 680;
 const PLAYER_W = 26, PLAYER_H = 40;
 const ROOM_W = 1000, ROOM_H = 600;
-const LEVEL_COUNT = 3;
-
+const LEVEL_COUNT = 10;
 const COLORS = ['#60a5fa','#f87171','#4ade80','#facc15','#a78bfa','#fb923c','#22d3ee','#f472b6'];
 
 // ==================== УРОВНИ ====================
 const LEVELS = {
-  1: {
-    name: "Серая комната",
-    bg: "#16161a", wall: "#33333a", floor: "#25252a", plat: "#42424a",
+  1: { name: "Серая комната", bg: "#16161a", wall: "#33333a", floor: "#25252a", plat: "#42424a",
     torches: [{x:120,y:280},{x:500,y:280},{x:880,y:280}],
-    platforms: [
-      { x: 0, y: 0, w: 1000, h: 20 },
-      { x: 0, y: 0, w: 20, h: 600 },
-      { x: 980, y: 0, w: 20, h: 600 },
-      { x: 0, y: 550, w: 1000, h: 50 },
-      { x: 100, y: 450, w: 140, h: 15, deco: true },
-      { x: 700, y: 340, w: 220, h: 20 },
-    ],
-    key: { x: 800, y: 300, w: 22, h: 22 },
-    door: { x: 480, y: 490, w: 40, h: 60 },
-    spawn: [{ x: 80, y: 480 }, { x: 140, y: 480 }],
-    hint: "🪜 Один встаёт другому на голову — тот прыгает и достаёт ключ!"
-  },
-  2: {
-    name: "Зал плит",
-    bg: "#1a1616", wall: "#3a3333", floor: "#2a2525", plat: "#4a4242",
-    torches: [{x:120,y:280},{x:500,y:280},{x:880,y:280}],
-    platforms: [
-      { x: 0, y: 0, w: 1000, h: 20 },
-      { x: 0, y: 0, w: 20, h: 600 },
-      { x: 980, y: 0, w: 20, h: 600 },
-      { x: 0, y: 550, w: 1000, h: 50 },
-    ],
-    plates: [
-      { x: 120, y: 530, w: 70, h: 20 },
-      { x: 810, y: 530, w: 70, h: 20 },
-    ],
-    door: { x: 480, y: 490, w: 40, h: 60 },
-    spawn: [{ x: 300, y: 480 }, { x: 660, y: 480 }],
-    hint: "⚖️ Встаньте ОБА на плиты одновременно — дверь откроется!"
-  },
-  3: {
-    name: "Башня",
-    bg: "#161a16", wall: "#333a33", floor: "#252a25", plat: "#424a42",
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:450,w:140,h:15,deco:true},{x:700,y:340,w:220,h:20}],
+    key:{x:800,y:300,w:22,h:22}, door:{x:480,y:490,w:40,h:60},
+    spawn:[{x:80,y:480},{x:140,y:480}],
+    hint:"🪜 Один встаёт другому на голову — тот прыгает и достаёт ключ!" },
+
+  2: { name: "Зал четырёх плит", bg: "#1a1616", wall: "#3a3333", floor: "#2a2525", plat: "#4a4242",
+    torches: [{x:120,y:280},{x:880,y:280}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50}],
+    plates: [{x:100,y:530,w:70,h:20},{x:330,y:530,w:70,h:20},{x:600,y:530,w:70,h:20},{x:830,y:530,w:70,h:20}],
+    door:{x:480,y:490,w:40,h:60}, spawn:[{x:40,y:480},{x:940,y:480}],
+    hint:"🔢 Наступите на плиты В ПОРЯДКЕ цифр. Ошибка = сброс!" },
+
+  3: { name: "Башня", bg: "#161a16", wall: "#333a33", floor: "#252a25", plat: "#424a42",
     torches: [{x:120,y:200},{x:880,y:200},{x:120,y:450},{x:880,y:450}],
-    platforms: [
-      { x: 0, y: 0, w: 1000, h: 20 },
-      { x: 0, y: 0, w: 20, h: 600 },
-      { x: 980, y: 0, w: 20, h: 600 },
-      { x: 0, y: 550, w: 1000, h: 50 },
-      { x: 100, y: 400, w: 120, h: 15, deco: true },
-      { x: 750, y: 340, w: 200, h: 20 },
-    ],
-    lever: { x: 880, y: 300, w: 20, h: 40 },
-    door: { x: 480, y: 490, w: 40, h: 60 },
-    spawn: [{ x: 80, y: 480 }, { x: 140, y: 480 }],
-    hint: "⚙️ Подсадите друга — он дёрнет рычаг и откроет дверь!"
-  }
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:400,w:120,h:15,deco:true},{x:750,y:340,w:200,h:20}],
+    lever:{x:880,y:300,w:20,h:40}, door:{x:480,y:490,w:40,h:60},
+    spawn:[{x:80,y:480},{x:140,y:480}],
+    hint:"⚙️ Подсадите друга — он дёрнет рычаг и откроет дверь!" },
+
+  4: { name: "Синхрон", bg: "#1a1a22", wall: "#3a3a44", floor: "#2a2a32", plat: "#48485a",
+    torches: [{x:120,y:280},{x:500,y:280},{x:880,y:280}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50}],
+    syncLevers: [{x:80,y:510,w:25,h:40},{x:895,y:510,w:25,h:40}],
+    door:{x:480,y:490,w:40,h:60}, spawn:[{x:200,y:480},{x:800,y:480}],
+    hint:"⚡ Нажмите ОБА рычага в течение 3 секунд!" },
+
+  5: { name: "Финал-1", bg: "#181418", wall: "#3a2a3a", floor: "#2a1a2a", plat: "#4a3a4a",
+    torches: [{x:120,y:280},{x:500,y:200},{x:880,y:280}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:450,w:140,h:15,deco:true},{x:700,y:340,w:220,h:20}],
+    key:{x:800,y:300,w:22,h:22},
+    plates:[{x:100,y:530,w:70,h:20},{x:330,y:530,w:70,h:20},{x:600,y:530,w:70,h:20},{x:830,y:530,w:70,h:20}],
+    door:{x:480,y:490,w:40,h:60}, spawn:[{x:40,y:480},{x:940,y:480}],
+    hint:"🏆 Плиты по порядку + ключ подсадкой!" },
+
+  6: { name: "Ступени", bg: "#171a17", wall: "#2f3a2f", floor: "#242a24", plat: "#3a4a3a",
+    torches: [{x:200,y:400},{x:800,y:400},{x:500,y:250}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:470,w:120,h:15},{x:350,y:380,w:120,h:15},{x:600,y:290,w:120,h:15},{x:790,y:200,w:160,h:20}],
+    lever:{x:900,y:160,w:20,h:40}, door:{x:480,y:490,w:40,h:60},
+    spawn:[{x:200,y:480},{x:280,y:480}],
+    hint:"🪜 Поднимайтесь по ступеням вдвоём, подсаживая друг друга!" },
+
+  7: { name: "Тьма", bg: "#0a0a0c", wall: "#1a1a1f", floor: "#14141a", plat: "#23232a",
+    torches: [{x:500,y:280}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:450,w:100,h:15},{x:800,y:450,w:100,h:15}],
+    plates:[{x:150,y:530,w:70,h:20},{x:780,y:530,w:70,h:20}],
+    door:{x:480,y:490,w:40,h:60}, spawn:[{x:300,y:480},{x:660,y:480}],
+    hint:"🌑 В темноте только факелы укажут путь. Обе плиты — и дверь откроется." },
+
+  8: { name: "Ущелье", bg: "#1a1510", wall: "#3a2f22", floor: "#2a2018", plat: "#4a3a28",
+    torches: [{x:120,y:280},{x:880,y:280},{x:500,y:400}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:200,y:400,w:80,h:15},{x:380,y:300,w:80,h:15},{x:560,y:400,w:80,h:15},{x:730,y:300,w:80,h:15}],
+    key:{x:820,y:260,w:22,h:22}, door:{x:480,y:490,w:40,h:60},
+    spawn:[{x:60,y:480},{x:100,y:480}],
+    hint:"🏔️ Прыгайте по платформам вдвоём и достаньте ключ!" },
+
+  9: { name: "Хранилище", bg: "#14161a", wall: "#2a3040", floor: "#1f2430", plat: "#3a4050",
+    torches: [{x:120,y:280},{x:500,y:200},{x:880,y:280}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:450,w:200,h:15},{x:700,y:450,w:200,h:15},{x:380,y:380,w:240,h:20}],
+    plates:[{x:150,y:435,w:60,h:15},{x:790,y:435,w:60,h:15}],
+    key:{x:480,y:340,w:22,h:22}, door:{x:480,y:490,w:40,h:60},
+    spawn:[{x:250,y:480},{x:750,y:480}],
+    hint:"🏛️ Встаньте на плиты вверху, потом достаньте ключ в центре!" },
+
+  10: { name: "ZONA78 ФИНАЛ", bg: "#1a1018", wall: "#3a2030", floor: "#2a1820", plat: "#4a2838",
+    torches: [{x:120,y:280},{x:880,y:280},{x:200,y:150},{x:800,y:150}],
+    platforms: [{x:0,y:0,w:1000,h:20},{x:0,y:0,w:20,h:600},{x:980,y:0,w:20,h:600},{x:0,y:550,w:1000,h:50},
+      {x:100,y:400,w:150,h:15},{x:750,y:400,w:150,h:15},{x:700,y:250,w:220,h:20}],
+    key:{x:800,y:210,w:22,h:22},
+    plates:[{x:120,y:530,w:60,h:20},{x:280,y:530,w:60,h:20},{x:640,y:530,w:60,h:20},{x:800,y:530,w:60,h:20}],
+    door:{x:480,y:490,w:40,h:60}, spawn:[{x:40,y:480},{x:940,y:480}],
+    hint:"🏆 ФИНАЛ ZONA78! Плиты по порядку + ключ подсадкой. Вперёд!" }
 };
+
+// ==================== ЗВУК ====================
+let audioCtx = null, soundEnabled = true;
+function initAudio() {
+  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ soundEnabled = false; } }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+window.addEventListener('keydown', initAudio);
+window.addEventListener('click', initAudio);
+
+function playTone(f1, f2, dur, type, vol) {
+  if (!audioCtx || !soundEnabled) return;
+  try {
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f1, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol || 0.05, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch(e) {}
+}
+
+function playNoise(dur, vol, freq) {
+  if (!audioCtx || !soundEnabled) return;
+  try {
+    const t = audioCtx.currentTime;
+    const n = Math.floor(audioCtx.sampleRate * dur);
+    const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq || 500;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(vol || 0.03, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(f); f.connect(g); g.connect(audioCtx.destination);
+    src.start(t); src.stop(t + dur + 0.02);
+  } catch(e) {}
+}
+
+function sfxStep()    { playNoise(0.05, 0.025, 350); }
+function sfxJump()    { playTone(280, 480, 0.09, 'sine', 0.04); }
+function sfxLand()    { playTone(130, 50, 0.12, 'triangle', 0.06); }
+function sfxPlate()   { playTone(600, 900, 0.12, 'sine', 0.07); setTimeout(()=>playTone(900,1200,0.08,'sine',0.05), 70); }
+function sfxFail()    { playTone(220, 110, 0.22, 'sawtooth', 0.05); }
+function sfxKey()     { playTone(800, 1500, 0.18, 'sine', 0.06); setTimeout(()=>playTone(1200,1800,0.13,'sine',0.045), 90); }
+function sfxLever()   { playTone(160, 80, 0.16, 'square', 0.055); }
+function sfxWin()     { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,f*1.02,0.22,'sine',0.07), i*110)); }
+function sfxGolden()  { [800,1000,1200,1500].forEach((f,i)=>setTimeout(()=>playTone(f,f*1.1,0.15,'sine',0.05), i*60)); }
 
 // ==================== СОСТОЯНИЕ ====================
 let ws = null, myId = null, myColor = COLORS[0], roomCode = null, levelNum = 1;
-let gameRunning = false;
-let otherInitialized = false;
+let gameRunning = false, otherInitialized = false;
+let goldenUntil = 0;
 
-const me = { x: 0, y: 0, vx: 0, vy: 0, onGround: false, facing: 1, walkPhase: 0 };
-const other = { x: 0, y: 0, targetX: 0, targetY: 0, facing: 1, walkPhase: 0, color: '#f87171', online: false };
-let puzzle = { keyCollected: false, doorOpen: false, plates: { a: false, b: false }, leverPulled: false };
-let atDoor = { me: false };
+const me = { x:0, y:0, vx:0, vy:0, onGround:false, facing:1, walkPhase:0, wasOnGround:false };
+const other = { x:0, y:0, targetX:0, targetY:0, facing:1, walkPhase:0, color:'#f87171', online:false };
+let puzzle = { keyCollected:false, doorOpen:false, plates:[false,false,false,false],
+  plateSequence:[0,1,2,3], nextPlateIdx:0, leverPulled:false, levers:[false,false] };
+let atDoor = { me:false };
+let atPlate = [false,false,false,false];
+let atSyncLever = [false,false];
+
+let footstepCd = 0;
+const WHISPERS = ['тише...','ты слышишь?','они рядом','не оглядывайся','беги','зона помнит','мы не одни','свет гаснет','ключ рядом','где вы?','...'];
+let whisper = null, whisperTimer = 3;
 
 const keys = {};
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   keys[k] = true;
+  if (k === 'g') { goldenUntil = performance.now() + 5000; sfxGolden(); }
   if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault();
 });
 window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
@@ -205,32 +269,29 @@ window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let scale = 1, offX = 0, offY = 0;
-
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   scale = Math.min(canvas.width / ROOM_W, canvas.height / ROOM_H);
   offX = (canvas.width - ROOM_W * scale) / 2;
   offY = (canvas.height - ROOM_H * scale) / 2;
 }
-window.addEventListener('resize', resize);
-resize();
+window.addEventListener('resize', resize); resize();
 
 // ==================== ЗАГРУЗКА УРОВНЯ ====================
 function loadLevel(n) {
   levelNum = n;
-  const lvl = LEVELS[n];
-  if (!lvl) return;
+  const lvl = LEVELS[n]; if (!lvl) return;
   const idx = myId === 'p1' ? 0 : 1;
-  me.x = lvl.spawn[idx].x;
-  me.y = lvl.spawn[idx].y;
-  me.vx = 0; me.vy = 0;
+  me.x = lvl.spawn[idx].x; me.y = lvl.spawn[idx].y; me.vx = 0; me.vy = 0;
   if (other.online) {
     const o = idx === 0 ? 1 : 0;
     other.x = other.targetX = lvl.spawn[o].x;
     other.y = other.targetY = lvl.spawn[o].y;
   }
-  puzzle = { keyCollected: false, doorOpen: false, plates: { a: false, b: false }, leverPulled: false };
+  puzzle = { keyCollected:false, doorOpen:false, plates:[false,false,false,false],
+    plateSequence:[0,1,2,3], nextPlateIdx:0, leverPulled:false, levers:[false,false] };
+  atPlate = [false,false,false,false];
+  atSyncLever = [false,false];
   atDoor.me = false;
   document.getElementById('hud-level').textContent = n;
   document.getElementById('hud-level-name').textContent = lvl.name;
@@ -240,8 +301,7 @@ function loadLevel(n) {
 let hintTimeout = null;
 function showHint(t) {
   const el = document.getElementById('hint');
-  el.textContent = t;
-  el.classList.remove('hidden');
+  el.textContent = t; el.classList.remove('hidden');
   clearTimeout(hintTimeout);
   hintTimeout = setTimeout(() => el.classList.add('hidden'), 6000);
 }
@@ -252,53 +312,50 @@ function overlap(a, b) {
 }
 
 function updatePhysics(dt) {
-  const lvl = LEVELS[levelNum];
-  if (!lvl) return;
+  const lvl = LEVELS[levelNum]; if (!lvl) return;
 
-  // Ввод
   let dx = 0;
   if (keys['a'] || keys['ф'] || keys['arrowleft']) dx -= 1;
   if (keys['d'] || keys['в'] || keys['arrowright']) dx += 1;
   if (dx) me.facing = dx;
   me.vx = dx * MOVE_SPEED;
 
-  // Прыжок
   if ((keys['w'] || keys['ц'] || keys['arrowup'] || keys[' ']) && me.onGround) {
-    me.vy = -JUMP_FORCE;
-    me.onGround = false;
+    me.vy = -JUMP_FORCE; me.onGround = false; sfxJump();
   }
 
   me.vy += GRAVITY * dt;
   if (me.vy > 1200) me.vy = 1200;
 
-  // Собираем платформы + второго игрока как платформу
   const plats = [...lvl.platforms];
   if (other.online && me.y + PLAYER_H <= other.y + 6) {
-    plats.push({ x: other.x, y: other.y, w: PLAYER_W, h: PLAYER_H, isPlayer: true });
+    plats.push({ x:other.x, y:other.y, w:PLAYER_W, h:PLAYER_H, isPlayer:true });
   }
 
-  // Горизонталь
   me.x += me.vx * dt;
   for (const p of plats) {
-    const r = { x: me.x, y: me.y, w: PLAYER_W, h: PLAYER_H };
+    const r = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
     if (overlap(r, p)) {
       if (me.vx > 0) me.x = p.x - PLAYER_W;
       else if (me.vx < 0) me.x = p.x + p.w;
     }
   }
 
-  // Вертикаль
+  me.wasOnGround = me.onGround;
   me.onGround = false;
   me.y += me.vy * dt;
   for (const p of plats) {
-    const r = { x: me.x, y: me.y, w: PLAYER_W, h: PLAYER_H };
+    const r = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
     if (overlap(r, p)) {
       if (me.vy > 0) { me.y = p.y - PLAYER_H; me.vy = 0; me.onGround = true; }
       else if (me.vy < 0) { me.y = p.y + p.h; me.vy = 0; }
     }
   }
 
-  // Границы
+  if (!me.wasOnGround && me.onGround) {
+    sfxLand(); spawnDust(me.x + PLAYER_W/2, me.y + PLAYER_H, 6);
+  }
+
   if (me.x < 20) me.x = 20;
   if (me.x + PLAYER_W > 980) me.x = 980 - PLAYER_W;
   if (me.y > 700) {
@@ -306,61 +363,70 @@ function updatePhysics(dt) {
     me.x = lvl.spawn[idx].x; me.y = lvl.spawn[idx].y; me.vy = 0;
   }
 
-  if (Math.abs(me.vx) > 10 && me.onGround) me.walkPhase += dt * 10;
+  if (Math.abs(me.vx) > 10 && me.onGround) {
+    me.walkPhase += dt * 10;
+    footstepCd -= dt;
+    if (footstepCd <= 0) { sfxStep(); footstepCd = 0.32; }
+  }
 
   // Ключ
   if (lvl.key && !puzzle.keyCollected) {
-    const kr = { x: lvl.key.x, y: lvl.key.y, w: lvl.key.w, h: lvl.key.h };
-    const mr = { x: me.x, y: me.y, w: PLAYER_W, h: PLAYER_H };
-    if (overlap(mr, kr)) sendEvent('key');
+    const kr = { x:lvl.key.x, y:lvl.key.y, w:lvl.key.w, h:lvl.key.h };
+    const mr = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
+    if (overlap(mr, kr)) { sfxKey(); sendEvent('key'); }
   }
 
-  // Плиты (проверка по X + onGround)
+  // Плиты
   if (lvl.plates) {
     lvl.plates.forEach((plate, i) => {
-      const plateId = i === 0 ? 'a' : 'b';
       const cx = me.x + PLAYER_W / 2;
       const on = me.onGround && cx > plate.x && cx < plate.x + plate.w && Math.abs(me.y + PLAYER_H - plate.y) < 25;
-      if (on && !puzzle.plates[plateId]) sendEvent('plate', { plate: plateId, value: true });
-      else if (!on && puzzle.plates[plateId]) sendEvent('plate', { plate: plateId, value: false });
+      if (on && !atPlate[i]) {
+        atPlate[i] = true;
+        if (i === puzzle.plateSequence[puzzle.nextPlateIdx]) sfxPlate(); else sfxFail();
+        sendEvent('plate', { index: i });
+      } else if (!on && atPlate[i]) atPlate[i] = false;
     });
   }
 
-  // Рычаг
+  // Синхро-рычаги
+  if (lvl.syncLevers) {
+    lvl.syncLevers.forEach((lever, i) => {
+      const lr = { x:lever.x, y:lever.y, w:lever.w, h:lever.h };
+      const mr = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
+      const on = overlap(mr, lr);
+      if (on && !atSyncLever[i]) { atSyncLever[i] = true; sfxLever(); sendEvent('sync', { which:i }); }
+      else if (!on && atSyncLever[i]) atSyncLever[i] = false;
+    });
+  }
+
+  // Одиночный рычаг
   if (lvl.lever && !puzzle.leverPulled) {
-    const lr = { x: lvl.lever.x, y: lvl.lever.y, w: lvl.lever.w, h: lvl.lever.h };
-    const mr = { x: me.x, y: me.y, w: PLAYER_W, h: PLAYER_H };
-    if (overlap(mr, lr)) sendEvent('lever');
+    const lr = { x:lvl.lever.x, y:lvl.lever.y, w:lvl.lever.w, h:lvl.lever.h };
+    const mr = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
+    if (overlap(mr, lr)) { sfxLever(); sendEvent('lever'); }
   }
 
   // Дверь
   if (lvl.door && puzzle.doorOpen) {
-    const dr = { x: lvl.door.x, y: lvl.door.y, w: lvl.door.w, h: lvl.door.h };
-    const mr = { x: me.x, y: me.y, w: PLAYER_W, h: PLAYER_H };
+    const dr = { x:lvl.door.x, y:lvl.door.y, w:lvl.door.w, h:lvl.door.h };
+    const mr = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
     const inside = overlap(mr, dr);
-    if (inside !== atDoor.me) {
-      atDoor.me = inside;
-      sendEvent('door', { value: inside });
-    }
+    if (inside !== atDoor.me) { atDoor.me = inside; sendEvent('door', { value:inside }); }
   }
 }
 
 // ==================== СЕТЬ ====================
 let sendTimer = 0;
 function sendState(dt) {
-  sendTimer -= dt;
-  if (sendTimer > 0) return;
-  sendTimer = 1 / 30;
+  sendTimer -= dt; if (sendTimer > 0) return;
+  sendTimer = 1/30;
   if (!ws || ws.readyState !== 1) return;
-  ws.send(JSON.stringify({
-    type: 'state',
-    data: { x: me.x, y: me.y, facing: me.facing, walkPhase: me.walkPhase }
-  }));
+  ws.send(JSON.stringify({ type:'state', data:{ x:me.x, y:me.y, facing:me.facing, walkPhase:me.walkPhase }}));
 }
-
 function sendEvent(event, data = {}) {
   if (!ws || ws.readyState !== 1) return;
-  ws.send(JSON.stringify({ type: 'event', event, ...data }));
+  ws.send(JSON.stringify({ type:'event', event, ...data }));
 }
 
 function connectServer() {
@@ -369,30 +435,24 @@ function connectServer() {
   ws.onopen = () => setStatus('🟢 подключено', false);
   ws.onclose = () => { setStatus('🔴 отключено', true); setTimeout(connectServer, 2000); };
   ws.onerror = () => setStatus('⚠ ошибка', true);
-  ws.onmessage = (e) => {
-    let msg;
-    try { msg = JSON.parse(e.data); } catch { return; }
-    handleMessage(msg);
-  };
+  ws.onmessage = (e) => { try { handleMessage(JSON.parse(e.data)); } catch(_) {} };
 }
 
 function handleMessage(msg) {
   if (msg.type === 'created') {
-    myId = msg.playerId;
-    roomCode = msg.code;
+    myId = msg.playerId; roomCode = msg.code;
     document.getElementById('wait-code').textContent = msg.code;
     document.getElementById('hud-code').textContent = msg.code;
     showScreen('wait');
   } else if (msg.type === 'joined') {
-    myId = msg.playerId;
-    roomCode = msg.code;
-    other.online = true;
-    other.color = msg.otherColor;
+    myId = msg.playerId; roomCode = msg.code;
+    other.online = true; other.color = msg.otherColor;
+    if (msg.puzzle) puzzle = msg.puzzle;
     document.getElementById('hud-code').textContent = msg.code;
     startGame(msg.level);
   } else if (msg.type === 'playerJoined') {
-    other.online = true;
-    other.color = msg.color;
+    other.online = true; other.color = msg.color;
+    if (msg.puzzle) puzzle = msg.puzzle;
     startGame(1);
   } else if (msg.type === 'state') {
     if (!otherInitialized) {
@@ -400,14 +460,15 @@ function handleMessage(msg) {
       other.y = other.targetY = msg.data.y;
       otherInitialized = true;
     }
-    other.targetX = msg.data.x;
-    other.targetY = msg.data.y;
-    other.facing = msg.data.facing;
-    other.walkPhase = msg.data.walkPhase;
+    other.targetX = msg.data.x; other.targetY = msg.data.y;
+    other.facing = msg.data.facing; other.walkPhase = msg.data.walkPhase;
   } else if (msg.type === 'puzzle') {
+    if (msg.state.doorOpen && !puzzle.doorOpen) sfxPlate();
     puzzle = msg.state;
   } else if (msg.type === 'level') {
+    if (msg.puzzle) puzzle = msg.puzzle;
     if (msg.level > LEVEL_COUNT) {
+      sfxWin();
       document.getElementById('menu-win').classList.remove('hidden');
       document.getElementById('menu').classList.remove('hidden');
       document.getElementById('hud').classList.add('hidden');
@@ -416,21 +477,17 @@ function handleMessage(msg) {
       loadLevel(msg.level);
     }
   } else if (msg.type === 'playerLeft') {
-    other.online = false;
-    otherInitialized = false;
+    other.online = false; otherInitialized = false;
     showHint('⚠ Игрок отключился');
   } else if (msg.type === 'error') {
-    alert(msg.message);
-    showScreen('main');
+    alert(msg.message); showScreen('main');
   }
 }
 
 function setStatus(t, bad) {
   const el = document.getElementById('status');
-  el.textContent = t;
-  el.classList.toggle('bad', bad);
+  el.textContent = t; el.classList.toggle('bad', bad);
 }
-
 function ensureConnected(cb) {
   if (ws && ws.readyState === 1) { cb(); return; }
   if (!ws) connectServer();
@@ -446,6 +503,42 @@ function interpOther() {
   if (Math.abs(other.targetX - other.x) > 2) other.walkPhase += 0.3;
 }
 
+// ==================== ЧАСТИЦЫ ====================
+const particles = [];
+const rand = (a,b) => Math.random() * (b - a) + a;
+
+function spawnDust(x, y, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: rand(-70, 70), vy: rand(-50, -10),
+      size: rand(2, 4), color: '#888',
+      life: 1, decay: 0.028, ambient: false
+    });
+  }
+}
+
+function spawnAmbient() {
+  particles.push({
+    x: rand(0, ROOM_W), y: ROOM_H + 5,
+    vx: rand(-15, 15), vy: rand(-25, -10),
+    size: rand(1, 2.5), color: 'rgba(255,190,120,0.6)',
+    life: 1, decay: 0.0035, ambient: true
+  });
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (!p.ambient) { p.vx *= 0.96; p.vy *= 0.96; }
+    p.life -= p.decay;
+    if (p.life <= 0 || p.y < -20) particles.splice(i, 1);
+  }
+  if (Math.random() < 0.35) spawnAmbient();
+}
+
 // ==================== ОТРИСОВКА ====================
 function draw() {
   ctx.fillStyle = '#000';
@@ -453,38 +546,58 @@ function draw() {
   ctx.save();
   ctx.translate(offX, offY);
   ctx.scale(scale, scale);
-  ctx.beginPath();
-  ctx.rect(0, 0, ROOM_W, ROOM_H);
-  ctx.clip();
+  ctx.beginPath(); ctx.rect(0, 0, ROOM_W, ROOM_H); ctx.clip();
 
   const lvl = LEVELS[levelNum];
   if (lvl) {
     ctx.fillStyle = lvl.bg;
     ctx.fillRect(0, 0, ROOM_W, ROOM_H);
 
-    // Платформы
     for (const p of lvl.platforms) {
       if (p.y + p.h >= 550) ctx.fillStyle = lvl.floor;
       else if (p.x === 0 || p.x + p.w === 1000 || p.y === 0) ctx.fillStyle = lvl.wall;
       else ctx.fillStyle = lvl.plat;
       ctx.fillRect(p.x, p.y, p.w, p.h);
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2;
       ctx.strokeRect(p.x, p.y, p.w, p.h);
     }
 
     // Плиты
     if (lvl.plates) {
       lvl.plates.forEach((p, i) => {
-        const id = i === 0 ? 'a' : 'b';
-        const active = puzzle.plates[id];
+        const active = puzzle.plates[i];
         ctx.fillStyle = active ? '#4ade80' : '#7a5a2a';
         if (active) { ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 15; }
         ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.shadowBlur = 0;
         ctx.strokeStyle = active ? '#22c55e' : '#a87a3a';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(p.x, p.y, p.w, p.h);
+        ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, p.w, p.h);
+        if (puzzle.plateSequence) {
+          const num = puzzle.plateSequence.indexOf(i) + 1;
+          ctx.fillStyle = active ? '#166534' : '#ffaa44';
+          ctx.font = 'bold 24px Courier New';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(num, p.x + p.w/2, p.y - 18);
+        }
+      });
+    }
+
+    // Синхро-рычаги
+    if (lvl.syncLevers) {
+      lvl.syncLevers.forEach((lever, i) => {
+        const active = puzzle.levers[i];
+        ctx.fillStyle = '#5a3a1a';
+        ctx.fillRect(lever.x, lever.y + lever.h - 8, lever.w, 8);
+        ctx.strokeStyle = active ? '#4ade80' : '#a87a3a';
+        ctx.lineWidth = 5; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(lever.x + lever.w/2, lever.y + lever.h - 8);
+        ctx.lineTo(lever.x + lever.w/2 - 12, lever.y + 5);
+        ctx.stroke();
+        ctx.fillStyle = active ? '#4ade80' : '#facc15';
+        if (active) { ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 20; }
+        ctx.beginPath(); ctx.arc(lever.x + lever.w/2 - 12, lever.y + 5, 6, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
       });
     }
 
@@ -494,108 +607,86 @@ function draw() {
       ctx.fillRect(lvl.door.x - 4, lvl.door.y - 4, lvl.door.w + 8, lvl.door.h + 4);
       if (puzzle.doorOpen) {
         const g = ctx.createLinearGradient(0, lvl.door.y, 0, lvl.door.y + lvl.door.h);
-        g.addColorStop(0, '#4ade80');
-        g.addColorStop(1, '#166534');
-        ctx.fillStyle = g;
-        ctx.shadowColor = '#4ade80';
-        ctx.shadowBlur = 30;
+        g.addColorStop(0, '#4ade80'); g.addColorStop(1, '#166534');
+        ctx.fillStyle = g; ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 30;
         ctx.fillRect(lvl.door.x, lvl.door.y, lvl.door.w, lvl.door.h);
         ctx.shadowBlur = 0;
       } else {
         ctx.fillStyle = '#1a0f05';
         ctx.fillRect(lvl.door.x, lvl.door.y, lvl.door.w, lvl.door.h);
         ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(lvl.door.x + lvl.door.w/2, lvl.door.y + lvl.door.h/2, 5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(lvl.door.x + lvl.door.w/2, lvl.door.y + lvl.door.h/2, 5, 0, Math.PI*2); ctx.fill();
       }
     }
 
-    // Ключ
     if (lvl.key && !puzzle.keyCollected) drawKey(lvl.key.x, lvl.key.y);
-
-    // Рычаг
     if (lvl.lever && !puzzle.leverPulled) drawLever(lvl.lever.x, lvl.lever.y, lvl.lever.w, lvl.lever.h);
-
-    // Факелы
     if (lvl.torches) for (const t of lvl.torches) drawTorch(t.x, t.y);
 
-    // Другой игрок
-    if (other.online) drawPlayer(other.x, other.y, other.facing, other.walkPhase, other.color, false);
+    // Частицы (за персонажами)
+    for (const p of particles) {
+      ctx.globalAlpha = p.life * (p.ambient ? 0.7 : 1);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
 
-    // Я
+    if (other.online) drawPlayer(other.x, other.y, other.facing, other.walkPhase, other.color, false);
     drawPlayer(me.x, me.y, me.facing, me.walkPhase, myColor, true);
   }
 
   ctx.restore();
 
   // Виньетка
-  const vg = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height/3, canvas.width/2, canvas.height/2, canvas.height);
+  const vg = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height/3,
+    canvas.width/2, canvas.height/2, canvas.height);
   vg.addColorStop(0, 'rgba(0,0,0,0)');
   vg.addColorStop(1, 'rgba(0,0,0,0.75)');
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Шёпот
+  if (whisper) {
+    ctx.globalAlpha = whisper.life * 0.7;
+    ctx.fillStyle = '#aa8866';
+    ctx.font = 'italic 20px Courier New';
+    ctx.textAlign = 'left';
+    ctx.fillText(whisper.text, 40, canvas.height - 60);
+    ctx.globalAlpha = 1;
+  }
 }
 
 function drawKey(x, y) {
   const bob = Math.sin(performance.now() / 300) * 4;
-  ctx.save();
-  ctx.translate(x + 11, y + 11 + bob);
-  ctx.shadowColor = '#facc15';
-  ctx.shadowBlur = 25;
-  ctx.strokeStyle = '#facc15';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(-4, 0, 5, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.save(); ctx.translate(x + 11, y + 11 + bob);
+  ctx.shadowColor = '#facc15'; ctx.shadowBlur = 25;
+  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(-4, 0, 5, 0, Math.PI*2); ctx.stroke();
   ctx.fillStyle = '#facc15';
-  ctx.fillRect(0, -2, 14, 4);
-  ctx.fillRect(12, 0, 3, 5);
-  ctx.fillRect(7, 0, 3, 4);
+  ctx.fillRect(0, -2, 14, 4); ctx.fillRect(12, 0, 3, 5); ctx.fillRect(7, 0, 3, 4);
   ctx.restore();
 }
 
 function drawLever(x, y, w, h) {
   ctx.save();
-  ctx.fillStyle = '#5a3a1a';
-  ctx.fillRect(x, y + h - 8, w, 8);
-  ctx.strokeStyle = '#a87a3a';
-  ctx.lineWidth = 5;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x + w/2, y + h - 8);
-  ctx.lineTo(x + w/2 - 12, y + 5);
-  ctx.stroke();
-  ctx.fillStyle = '#facc15';
-  ctx.shadowColor = '#facc15';
-  ctx.shadowBlur = 15;
-  ctx.beginPath();
-  ctx.arc(x + w/2 - 12, y + 5, 6, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle = '#5a3a1a'; ctx.fillRect(x, y + h - 8, w, 8);
+  ctx.strokeStyle = '#a87a3a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x + w/2, y + h - 8); ctx.lineTo(x + w/2 - 12, y + 5); ctx.stroke();
+  ctx.fillStyle = '#facc15'; ctx.shadowColor = '#facc15'; ctx.shadowBlur = 15;
+  ctx.beginPath(); ctx.arc(x + w/2 - 12, y + 5, 6, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
 function drawTorch(x, y) {
   const t = performance.now() / 100;
   const f = 0.85 + Math.sin(t + x) * 0.1 + Math.random() * 0.08;
-  ctx.fillStyle = '#3a2a1a';
-  ctx.fillRect(x - 3, y, 6, 20);
+  ctx.fillStyle = '#3a2a1a'; ctx.fillRect(x - 3, y, 6, 20);
   const fh = 30 * f;
   const g = ctx.createRadialGradient(x, y - 10, 2, x, y - 10, fh);
-  g.addColorStop(0, '#fff7aa');
-  g.addColorStop(0.4, '#ffaa44');
-  g.addColorStop(1, 'rgba(255,60,0,0)');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(x, y - 10, fh, 0, Math.PI * 2);
-  ctx.fill();
+  g.addColorStop(0, '#fff7aa'); g.addColorStop(0.4, '#ffaa44'); g.addColorStop(1, 'rgba(255,60,0,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y - 10, fh, 0, Math.PI*2); ctx.fill();
   const lg = ctx.createRadialGradient(x, y, 20, x, y, 130);
-  lg.addColorStop(0, 'rgba(255,170,68,0.12)');
-  lg.addColorStop(1, 'rgba(255,170,68,0)');
-  ctx.fillStyle = lg;
-  ctx.beginPath();
-  ctx.arc(x, y, 130, 0, Math.PI * 2);
-  ctx.fill();
+  lg.addColorStop(0, 'rgba(255,170,68,0.12)'); lg.addColorStop(1, 'rgba(255,170,68,0)');
+  ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(x, y, 130, 0, Math.PI*2); ctx.fill();
 }
 
 function drawPlayer(x, y, facing, walkPhase, color, isMe) {
@@ -603,56 +694,39 @@ function drawPlayer(x, y, facing, walkPhase, color, isMe) {
   ctx.translate(x + PLAYER_W/2, y + PLAYER_H);
   ctx.scale(facing, 1);
 
-  const legSwing = Math.sin(walkPhase) * 3;
+  const golden = isMe && performance.now() < goldenUntil;
+  const bodyColor = golden ? '#ffd700' : color;
 
-  // Ноги
-  ctx.fillStyle = shade(color, -40);
+  const legSwing = Math.sin(walkPhase) * 3;
+  ctx.fillStyle = shade(bodyColor, -40);
   ctx.fillRect(-7, -8, 5, 8 + legSwing);
   ctx.fillRect(2, -8, 5, 8 - legSwing);
 
-  // Тело
-  ctx.fillStyle = color;
+  if (golden) { ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 25; }
+  ctx.fillStyle = bodyColor;
   ctx.fillRect(-PLAYER_W/2, -PLAYER_H + 5, PLAYER_W, PLAYER_H - 13);
-  ctx.strokeStyle = shade(color, -60);
-  ctx.lineWidth = 2;
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = shade(bodyColor, -60); ctx.lineWidth = 2;
   ctx.strokeRect(-PLAYER_W/2, -PLAYER_H + 5, PLAYER_W, PLAYER_H - 13);
 
-  // Голова
   ctx.fillStyle = '#f5deb3';
-  ctx.beginPath();
-  ctx.arc(0, -PLAYER_H + 2, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#c9b185';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Глаз
+  ctx.beginPath(); ctx.arc(0, -PLAYER_H + 2, 8, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#c9b185'; ctx.lineWidth = 1.5; ctx.stroke();
   ctx.fillStyle = '#222';
-  ctx.beginPath();
-  ctx.arc(3, -PLAYER_H + 1, 1.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(3, -PLAYER_H + 1, 1.5, 0, Math.PI*2); ctx.fill();
 
-  // Факел
   const ff = 0.85 + Math.random() * 0.15;
-  ctx.fillStyle = '#5a3a1a';
-  ctx.fillRect(8, -PLAYER_H + 12, 3, 14);
+  ctx.fillStyle = '#5a3a1a'; ctx.fillRect(8, -PLAYER_H + 12, 3, 14);
   const fx = 9.5, fy = -PLAYER_H + 8, fr = 8 * ff;
   const fg = ctx.createRadialGradient(fx, fy, 1, fx, fy, fr);
-  fg.addColorStop(0, '#fff7aa');
-  fg.addColorStop(0.5, '#ffaa44');
-  fg.addColorStop(1, 'rgba(255,100,0,0)');
-  ctx.fillStyle = fg;
-  ctx.beginPath();
-  ctx.arc(fx, fy, fr, 0, Math.PI * 2);
-  ctx.fill();
+  fg.addColorStop(0, '#fff7aa'); fg.addColorStop(0.5, '#ffaa44'); fg.addColorStop(1, 'rgba(255,100,0,0)');
+  ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(fx, fy, fr, 0, Math.PI*2); ctx.fill();
 
-  // Метка "ВЫ"
   if (isMe) {
     ctx.scale(1/facing, 1);
-    ctx.fillStyle = '#ffaa44';
-    ctx.font = 'bold 11px Courier New';
-    ctx.textAlign = 'center';
-    ctx.fillText('ВЫ', 0, -PLAYER_H - 15);
+    ctx.fillStyle = golden ? '#ffd700' : '#ffaa44';
+    ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+    ctx.fillText(golden ? '★ ВЫ ★' : 'ВЫ', 0, -PLAYER_H - 15);
   }
   ctx.restore();
 }
@@ -670,11 +744,23 @@ let lastTime = performance.now();
 function loop(now) {
   const dt = Math.min((now - lastTime) / 1000, 0.05);
   lastTime = now;
+
   if (gameRunning) {
     updatePhysics(dt);
     sendState(dt);
     interpOther();
   }
+  updateParticles(dt);
+
+  // Шёпот
+  whisperTimer -= dt;
+  if (whisper) {
+    whisper.life -= dt * 0.25;
+    if (whisper.life <= 0) { whisper = null; whisperTimer = 15 + Math.random() * 20; }
+  } else if (whisperTimer <= 0 && gameRunning) {
+    whisper = { text: WHISPERS[Math.floor(Math.random() * WHISPERS.length)], life: 1 };
+  }
+
   draw();
   requestAnimationFrame(loop);
 }
@@ -690,7 +776,7 @@ function startGame(level) {
 }
 
 function showScreen(name) {
-  ['main', 'join', 'wait', 'win'].forEach(s => {
+  ['main','join','wait','win'].forEach(s => {
     document.getElementById('menu-' + s).classList.toggle('hidden', s !== name);
   });
   document.getElementById('menu').classList.remove('hidden');
@@ -698,13 +784,11 @@ function showScreen(name) {
   gameRunning = false;
 }
 
-// Цветовые кнопки
 const colorsEl = document.getElementById('colors');
 COLORS.forEach((c, i) => {
   const b = document.createElement('div');
   b.className = 'color-btn' + (i === 0 ? ' active' : '');
-  b.style.background = c;
-  b.style.color = c;
+  b.style.background = c; b.style.color = c;
   b.onclick = () => {
     myColor = c;
     document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
@@ -714,31 +798,25 @@ COLORS.forEach((c, i) => {
 });
 
 document.getElementById('btn-create').onclick = () => {
-  ensureConnected(() => ws.send(JSON.stringify({ type: 'create', color: myColor })));
+  ensureConnected(() => ws.send(JSON.stringify({ type:'create', color: myColor })));
 };
-
 document.getElementById('btn-join').onclick = () => {
   showScreen('join');
   setTimeout(() => document.getElementById('join-input').focus(), 100);
 };
-
 document.getElementById('btn-back').onclick = () => showScreen('main');
-
 document.getElementById('btn-join-go').onclick = () => {
   const code = document.getElementById('join-input').value.trim().toUpperCase();
   if (code.length !== 4) { alert('Введите 4-значный код'); return; }
-  ensureConnected(() => ws.send(JSON.stringify({ type: 'join', code, color: myColor })));
+  ensureConnected(() => ws.send(JSON.stringify({ type:'join', code, color: myColor })));
 };
-
 document.getElementById('join-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btn-join-go').click();
 });
-
 document.getElementById('btn-cancel').onclick = () => {
   if (ws) { ws.close(); ws = null; }
   showScreen('main');
 };
-
 document.getElementById('btn-restart').onclick = () => location.reload();
 
 showScreen('main');
