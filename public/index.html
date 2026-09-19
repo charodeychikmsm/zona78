@@ -1279,6 +1279,7 @@ function startGame(level) {
 }
 function startPvp() {
   gameMode = 'pvp';
+  other.online = true;
   document.getElementById('menu').classList.add('hidden');
   document.getElementById('hud').classList.add('hidden');
   document.getElementById('pvp-hud').classList.remove('hidden');
