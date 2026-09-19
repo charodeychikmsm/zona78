@@ -593,7 +593,7 @@ function draw() {
         ctx.shadowBlur = 0;
         ctx.strokeStyle = active ? '#22c55e' : '#a87a3a';
         ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, p.w, p.h);
-        if (puzzle.plateSequence) {
+        if (puzzle.plateSequence && [2, 5, 10].includes(levelNum)) {
           const num = puzzle.plateSequence.indexOf(i) + 1;
           ctx.fillStyle = active ? '#166534' : '#ffaa44';
           ctx.font = 'bold 24px Courier New';
