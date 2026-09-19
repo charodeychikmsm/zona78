@@ -156,6 +156,10 @@ var ROOM_W = 1000, ROOM_H = 600;
 var LEVEL_COUNT = 20;
 var COLORS = ['#60a5fa','#f87171','#4ade80','#facc15','#a78bfa','#fb923c','#22d3ee','#f472b6'];
 
+// ==================== СИНХРОННОЕ ВРЕМЯ ====================
+var serverTimeOffset = 0;
+function getTime() { return (Date.now() + serverTimeOffset) / 1000; }
+
 // ==================== КАРТА PVP ====================
 var PVP_MAP = {
   bg: '#1a1a1d', wall: '#2f2f38', floor: '#252530', plat: '#3a3a48',
@@ -192,6 +196,7 @@ var LEVELS = {
     key:{x:800,y:300,w:22,h:22}, spawn:[{x:80,y:480},{x:140,y:480}],
     hint:"🪜 Один встаёт другому на голову — тот прыгает и достаёт ключ!" }),
   2: L({ name:"Зал четырёх плит", bg:"#1a1616", wall:"#3a3333", floor:"#2a2525", plat:"#4a4242",
+    torches:[{x:120,y:280},{x:880,y:280}],
     plates:[{x:100,y:530,w:70,h:20},{x:330,y:530,w:70,h:20},{x:600,y:530,w:70,h:20},{x:830,y:530,w:70,h:20}],
     spawn:[{x:40,y:480},{x:940,y:480}],
     hint:"🔢 Плиты В ПОРЯДКЕ цифр!" }),
@@ -259,7 +264,7 @@ var LEVELS = {
       {x:740,y:320,w:100,h:15,axis:'y',range:50,speed:1.5,phase:4.5}
     ],
     door:{x:900,y:260,w:40,h:60}, spawn:[{x:30,y:480},{x:90,y:480}],
-    hint:"🪜 Платформы двигаются — прыгайте!" }),
+    hint:"🪜 Платформы двигаются — едут вместе с вами!" }),
   13: L({ name:"Мигающие", bg:"#18121a", wall:"#32223a", floor:"#1f1525", plat:"#40284a",
     torches:[{x:120,y:280},{x:500,y:200},{x:880,y:280}],
     spikes:[{x:0,y:545,w:1000,h:5}],
@@ -417,7 +422,7 @@ var goldenUntil = 0, invulnUntil = 0, deathFlash = 0, screenShake = 0, deathsCou
 var bloodStains = [];
 
 var me = { x:0, y:0, vx:0, vy:0, onGround:false, facing:1, walkPhase:0, wasOnGround:false,
-  hp:5, kills:0, angle:0 };
+  hp:5, kills:0, angle:0, standingOnId: null };
 var other = { x:0, y:0, targetX:0, targetY:0, facing:1, walkPhase:0, color:'#f87171',
   online:false, hp:5, kills:0, angle:0 };
 var puzzle = { keyCollected:false, doorOpen:false, plates:[false,false,false,false],
@@ -487,8 +492,7 @@ function shootPvp() {
   sfxShoot();
 }
 
-// ==================== ВРЕМЯ / ПЛАТФОРМЫ ====================
-function getTime() { return performance.now() / 1000; }
+// ==================== ПЛАТФОРМЫ ====================
 function getMovingPos(p) {
   var t = getTime();
   var dx = p.axis === 'x' ? Math.sin(t * p.speed + (p.phase || 0)) * p.range : 0;
@@ -534,7 +538,7 @@ function showHint(t) {
   hintTimeout = setTimeout(function() { el.classList.add('hidden'); }, 6000);
 }
 
-// ==================== СМЕРТЬ (STORY) ====================
+// ==================== СМЕРТЬ ====================
 function respawnAll() {
   var lvl = LEVELS[levelNum]; if (!lvl) return;
   var idx = myId === 'p1' ? 0 : 1;
@@ -547,7 +551,6 @@ function respawnAll() {
   atPlate = [false,false,false,false];
   atSyncLever = [false,false];
   atDoor.me = false;
-  // puzzle НЕ трогаем — приходит с сервера
 }
 function spawnBlood(x, y) {
   for (var i = 0; i < 8; i++) {
@@ -575,7 +578,22 @@ function killPlayer() {
 function overlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
+
 function physicsCommon(dt, lvl) {
+  // Прилипание к движущимся платформам
+  if (lvl.movingPlats) {
+    if (!window._lastMovingPos) window._lastMovingPos = {};
+    lvl.movingPlats.forEach(function (mp, i) {
+      var id = 'mp_' + i;
+      var pos = getMovingPos(mp);
+      if (window._lastMovingPos[id] && me.onGround && me.standingOnId === id) {
+        me.x += pos.x - window._lastMovingPos[id].x;
+        me.y += pos.y - window._lastMovingPos[id].y;
+      }
+      window._lastMovingPos[id] = { x: pos.x, y: pos.y };
+    });
+  }
+
   var dx = 0;
   if (keys['a'] || keys['ф'] || keys['arrowleft']) dx -= 1;
   if (keys['d'] || keys['в'] || keys['arrowright']) dx += 1;
@@ -595,7 +613,11 @@ function physicsCommon(dt, lvl) {
   if (me.vy > 1200) me.vy = 1200;
 
   var plats = lvl.platforms.slice();
-  if (lvl.movingPlats) for (var i = 0; i < lvl.movingPlats.length; i++) plats.push(getMovingPos(lvl.movingPlats[i]));
+  if (lvl.movingPlats) for (var i = 0; i < lvl.movingPlats.length; i++) {
+    var mp = getMovingPos(lvl.movingPlats[i]);
+    mp._id = 'mp_' + i;
+    plats.push(mp);
+  }
   if (lvl.vanishPlats) for (var j = 0; j < lvl.vanishPlats.length; j++) {
     var vp = lvl.vanishPlats[j];
     if (isVanishActive(vp)) plats.push({ x:vp.x, y:vp.y, w:vp.w, h:vp.h });
@@ -620,14 +642,21 @@ function physicsCommon(dt, lvl) {
 
   me.wasOnGround = me.onGround;
   me.onGround = false;
+  me.standingOnId = null;
   me.y += me.vy * dt;
   for (var m = 0; m < plats.length; m++) {
     var p2 = plats[m];
     var r2 = { x:me.x, y:me.y, w:PLAYER_W, h:PLAYER_H };
     if (overlap(r2, p2)) {
-      if (me.vy > 0) { me.y = p2.y - PLAYER_H; me.vy = 0; me.onGround = true; }
-      else if (me.vy < 0) { me.y = p2.y + p2.h; me.vy = 0; }
-      else if (p2.moving) { me.y = p2.y - PLAYER_H; me.onGround = true; }
+      if (me.vy > 0) {
+        me.y = p2.y - PLAYER_H; me.vy = 0; me.onGround = true;
+        if (p2._id) me.standingOnId = p2._id;
+      } else if (me.vy < 0) {
+        me.y = p2.y + p2.h; me.vy = 0;
+      } else if (p2.moving) {
+        me.y = p2.y - PLAYER_H; me.onGround = true;
+        if (p2._id) me.standingOnId = p2._id;
+      }
     }
   }
 
@@ -726,7 +755,12 @@ function connectServer() {
   ws.onerror = function() { setStatus('⚠ ошибка', true); };
   ws.onmessage = function(e) { try { handleMessage(JSON.parse(e.data)); } catch(err){} };
 }
+
 function handleMessage(msg) {
+  if (msg.type === 'time') {
+    serverTimeOffset = msg.t - Date.now();
+    return;
+  }
   if (msg.type === 'created') {
     myId = msg.playerId; roomCode = msg.code;
     gameMode = msg.mode || 'story';
