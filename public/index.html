@@ -315,7 +315,20 @@ function updatePhysics(dt) {
   if (dx) me.facing = dx;
   me.vx = dx * MOVE_SPEED;
 
+    // Прыжок (с бустом, если стоим на голове друга)
   if ((keys['w'] || keys['ц'] || keys['arrowup'] || keys[' ']) && me.onGround) {
+    const onFriend = other.online &&
+      Math.abs(me.y + PLAYER_H - other.y) < 15 &&
+      me.x + PLAYER_W > other.x &&
+      me.x < other.x + PLAYER_W;
+    me.vy = onFriend ? -JUMP_FORCE * 1.35 : -JUMP_FORCE;
+    me.onGround = false;
+    sfxJump();
+    if (onFriend) {
+      // Визуальный эффект буста
+      spawnDust(me.x + PLAYER_W/2, me.y + PLAYER_H, 10);
+    }
+  }
     me.vy = -JUMP_FORCE; me.onGround = false; sfxJump();
   }
 
@@ -323,7 +336,20 @@ function updatePhysics(dt) {
   if (me.vy > 1200) me.vy = 1200;
 
   const plats = [...lvl.platforms];
-  if (other.online && me.y + PLAYER_H <= other.y + 6) {
+    // Друг как платформа (расширенная зона захвата)
+  if (other.online) {
+    const nearTopOfFriend = me.y + PLAYER_H <= other.y + 20 && me.y + PLAYER_H >= other.y - 5;
+    const horizOverlap = me.x + PLAYER_W > other.x + 4 && me.x < other.x + PLAYER_W - 4;
+    if (nearTopOfFriend && horizOverlap && me.vy >= 0) {
+      plats.push({
+        x: other.x,
+        y: other.y,
+        w: PLAYER_W,
+        h: PLAYER_H,
+        isPlayer: true
+      });
+    }
+  }
     plats.push({ x:other.x, y:other.y, w:PLAYER_W, h:PLAYER_H, isPlayer:true });
   }
 
