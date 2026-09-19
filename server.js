@@ -139,7 +139,26 @@ wss.on('connection', (ws) => {
         updateDoor(room);
         changed = true;
       }
-      else if (msg.event === 'plate') {
+           else if (msg.event === 'plate') {
+        const i = msg.index;
+        if (i >= 0 && i < 4 && !pz.plates[i]) {
+          const lv = room.level;
+          const seqLevels = [2, 5, 10];
+          if (seqLevels.includes(lv)) {
+            if (i === pz.plateSequence[pz.nextPlateIdx]) {
+              pz.plates[i] = true;
+              pz.nextPlateIdx++;
+            } else {
+              pz.plates = [false, false, false, false];
+              pz.nextPlateIdx = 0;
+            }
+          } else {
+            pz.plates[i] = true;
+          }
+          updateDoor(room);
+          changed = true;
+        }
+      }
         const i = msg.index;
         if (i >= 0 && i < 4 && !pz.plates[i]) {
           if (i === pz.plateSequence[pz.nextPlateIdx]) {
