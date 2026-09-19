@@ -4,27 +4,7 @@ const path = require('path');
 const { WebSocketServer } = require('ws');
 
 const app = express();
-// ==== ДИАГНОСТИКА ====
-const fs = require('fs');
-console.log('=== ДИАГНОСТИКА ===');
-console.log('__dirname:', __dirname);
-const publicPath = path.join(__dirname, 'public');
-console.log('public path:', publicPath);
-console.log('public exists:', fs.existsSync(publicPath));
-if (fs.existsSync(publicPath)) {
-  console.log('files in public:', fs.readdirSync(publicPath));
-  const indexPath = path.join(publicPath, 'index.html');
-  console.log('index.html exists:', fs.existsSync(indexPath));
-  if (fs.existsSync(indexPath)) {
-    console.log('index.html size:', fs.statSync(indexPath).size);
-  }
-}
-console.log('==================');
-
-app.use(express.static(publicPath));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 3000;
@@ -32,23 +12,51 @@ const PORT = process.env.PORT || 3000;
 const rooms = new Map();
 
 function genCode() {
-  let code;
-  do {
-    code = Math.random().toString(36).slice(2, 6).toUpperCase();
-  } while (rooms.has(code));
-  return code;
+  let c;
+  do { c = Math.random().toString(36).slice(2, 6).toUpperCase(); } while (rooms.has(c));
+  return c;
 }
 
 function broadcast(room, msg) {
-  const data = JSON.stringify(msg);
-  for (const p of room.players.values()) {
-    if (p.ws.readyState === 1) p.ws.send(data);
+  const d = JSON.stringify(msg);
+  for (const p of room.players.values()) if (p.ws.readyState === 1) p.ws.send(d);
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
 }
 
 function resetPuzzle(room) {
-  room.puzzle = { keyCollected: false, doorOpen: false, plates: { a: false, b: false }, leverPulled: false };
+  room.puzzle = {
+    keyCollected: false,
+    doorOpen: false,
+    plates: [false, false, false, false],
+    plateSequence: shuffle([0, 1, 2, 3]),
+    nextPlateIdx: 0,
+    leverPulled: false,
+    levers: [false, false]
+  };
   room.doorState = { p1: false, p2: false };
+}
+
+function updateDoor(room) {
+  const pz = room.puzzle, lv = room.level;
+  if (lv === 1) pz.doorOpen = pz.keyCollected;
+  else if (lv === 2) pz.doorOpen = pz.nextPlateIdx === 4;
+  else if (lv === 3) pz.doorOpen = pz.leverPulled;
+  else if (lv === 4) pz.doorOpen = pz.levers[0] && pz.levers[1];
+  else if (lv === 5) pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
+  else if (lv === 6) pz.doorOpen = pz.leverPulled;
+  else if (lv === 7) pz.doorOpen = pz.plates[0] && pz.plates[1];
+  else if (lv === 8) pz.doorOpen = pz.keyCollected;
+  else if (lv === 9) pz.doorOpen = pz.plates[0] && pz.plates[1] && pz.keyCollected;
+  else if (lv === 10) pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
+  else pz.doorOpen = false;
 }
 
 function checkLevelDone(room) {
@@ -58,57 +66,55 @@ function checkLevelDone(room) {
       room.lastLevelDone = now;
       room.level++;
       resetPuzzle(room);
-      broadcast(room, { type: 'level', level: room.level });
+      broadcast(room, { type: 'level', level: room.level, puzzle: room.puzzle });
     }
   }
 }
 
 wss.on('connection', (ws) => {
-  let roomCode = null;
-  let playerId = null;
+  let roomCode = null, playerId = null;
 
   ws.on('message', (raw) => {
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
 
-    // === СОЗДАТЬ КОМНАТУ ===
     if (msg.type === 'create') {
       const code = genCode();
-      roomCode = code;
-      playerId = 'p1';
-      rooms.set(code, {
+      roomCode = code; playerId = 'p1';
+      const room = {
         code,
         players: new Map([[playerId, { id: playerId, color: msg.color, ws }]]),
         level: 1,
-        puzzle: { keyCollected: false, doorOpen: false, plates: { a: false, b: false }, leverPulled: false },
-        doorState: { p1: false, p2: false },
         lastLevelDone: 0
-      });
+      };
+      resetPuzzle(room);
+      rooms.set(code, room);
       ws.send(JSON.stringify({ type: 'created', code, playerId }));
-      console.log(`[+] Комната ${code} создана`);
       return;
     }
 
-    // === ВОЙТИ В КОМНАТУ ===
     if (msg.type === 'join') {
       const room = rooms.get(msg.code);
       if (!room) { ws.send(JSON.stringify({ type: 'error', message: 'Комната не найдена' })); return; }
       if (room.players.size >= 2) { ws.send(JSON.stringify({ type: 'error', message: 'Комната заполнена' })); return; }
-
-      roomCode = msg.code;
-      playerId = 'p2';
+      roomCode = msg.code; playerId = 'p2';
       const p1 = room.players.get('p1');
       room.players.set(playerId, { id: playerId, color: msg.color, ws });
-
       ws.send(JSON.stringify({
         type: 'joined',
         code: room.code,
         playerId,
         level: room.level,
+        puzzle: room.puzzle,
         otherColor: p1.color
       }));
-      broadcast(room, { type: 'playerJoined', color: msg.color, id: playerId });
-      console.log(`[+] Игрок вошёл в ${msg.code}`);
+      broadcast(room, {
+        type: 'playerJoined',
+        color: msg.color,
+        id: playerId,
+        level: room.level,
+        puzzle: room.puzzle
+      });
       return;
     }
 
@@ -116,42 +122,61 @@ wss.on('connection', (ws) => {
     const room = rooms.get(roomCode);
     if (!room) return;
 
-    // === РЕЛЕЙ СОСТОЯНИЯ ИГРОКА ===
     if (msg.type === 'state') {
       for (const p of room.players.values()) {
-        if (p.id === playerId) continue;
-        if (p.ws.readyState === 1) p.ws.send(JSON.stringify({ type: 'state', data: msg.data }));
+        if (p.id !== playerId && p.ws.readyState === 1)
+          p.ws.send(JSON.stringify({ type: 'state', data: msg.data }));
       }
       return;
     }
 
-    // === СОБЫТИЯ ===
     if (msg.type === 'event') {
-      let puzzleChanged = false;
+      let changed = false;
+      const pz = room.puzzle;
 
-      if (msg.event === 'key' && !room.puzzle.keyCollected) {
-        room.puzzle.keyCollected = true;
-        room.puzzle.doorOpen = true;
-        puzzleChanged = true;
-      } else if (msg.event === 'plate') {
-        const was = room.puzzle.plates[msg.plate];
-        room.puzzle.plates[msg.plate] = msg.value;
-        if (was !== msg.value) {
-          room.puzzle.doorOpen = room.puzzle.plates.a && room.puzzle.plates.b;
-          puzzleChanged = true;
+      if (msg.event === 'key' && !pz.keyCollected) {
+        pz.keyCollected = true;
+        updateDoor(room);
+        changed = true;
+      }
+      else if (msg.event === 'plate') {
+        const i = msg.index;
+        if (i >= 0 && i < 4 && !pz.plates[i]) {
+          if (i === pz.plateSequence[pz.nextPlateIdx]) {
+            pz.plates[i] = true;
+            pz.nextPlateIdx++;
+          } else {
+            pz.plates = [false, false, false, false];
+            pz.nextPlateIdx = 0;
+          }
+          updateDoor(room);
+          changed = true;
         }
-      } else if (msg.event === 'lever' && !room.puzzle.leverPulled) {
-        room.puzzle.leverPulled = true;
-        room.puzzle.doorOpen = true;
-        puzzleChanged = true;
-      } else if (msg.event === 'door') {
+      }
+      else if (msg.event === 'lever' && !pz.leverPulled) {
+        pz.leverPulled = true;
+        updateDoor(room);
+        changed = true;
+      }
+      else if (msg.event === 'sync') {
+        pz.levers[msg.which] = true;
+        updateDoor(room);
+        changed = true;
+        setTimeout(() => {
+          const r = rooms.get(roomCode);
+          if (!r || r.level !== 4 || r.puzzle.doorOpen) return;
+          r.puzzle.levers = [false, false];
+          broadcast(r, { type: 'puzzle', state: r.puzzle });
+        }, 3000);
+      }
+      else if (msg.event === 'door') {
         room.doorState[playerId] = msg.value;
         checkLevelDone(room);
         return;
       }
 
-      if (puzzleChanged) {
-        broadcast(room, { type: 'puzzle', state: room.puzzle });
+      if (changed) {
+        broadcast(room, { type: 'puzzle', state: pz });
         checkLevelDone(room);
       }
     }
@@ -164,10 +189,7 @@ wss.on('connection', (ws) => {
     room.players.delete(playerId);
     broadcast(room, { type: 'playerLeft' });
     if (room.players.size === 0) rooms.delete(roomCode);
-    console.log(`[-] Игрок вышел из ${roomCode}`);
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`🎮 ZONA78 запущен на http://localhost:${PORT}`);
-});
+server.listen(PORT, () => console.log(`🎮 ZONA78 запущен на http://localhost:${PORT}`));
