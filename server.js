@@ -26,7 +26,9 @@ function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    const temp = a[i];
+    a[i] = a[j];
+    a[j] = temp;
   }
   return a;
 }
@@ -45,18 +47,31 @@ function resetPuzzle(room) {
 }
 
 function updateDoor(room) {
-  const pz = room.puzzle, lv = room.level;
-  if (lv === 1) pz.doorOpen = pz.keyCollected;
-  else if (lv === 2) pz.doorOpen = pz.nextPlateIdx === 4;
-  else if (lv === 3) pz.doorOpen = pz.leverPulled;
-  else if (lv === 4) pz.doorOpen = pz.levers[0] && pz.levers[1];
-  else if (lv === 5) pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
-  else if (lv === 6) pz.doorOpen = pz.leverPulled;
-  else if (lv === 7) pz.doorOpen = pz.plates[0] && pz.plates[1];
-  else if (lv === 8) pz.doorOpen = pz.keyCollected;
-  else if (lv === 9) pz.doorOpen = pz.plates[0] && pz.plates[1] && pz.keyCollected;
-  else if (lv === 10) pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
-  else pz.doorOpen = false;
+  const pz = room.puzzle;
+  const lv = room.level;
+  if (lv === 1) {
+    pz.doorOpen = pz.keyCollected;
+  } else if (lv === 2) {
+    pz.doorOpen = pz.nextPlateIdx === 4;
+  } else if (lv === 3) {
+    pz.doorOpen = pz.leverPulled;
+  } else if (lv === 4) {
+    pz.doorOpen = pz.levers[0] && pz.levers[1];
+  } else if (lv === 5) {
+    pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
+  } else if (lv === 6) {
+    pz.doorOpen = pz.leverPulled;
+  } else if (lv === 7) {
+    pz.doorOpen = pz.plates[0] && pz.plates[1];
+  } else if (lv === 8) {
+    pz.doorOpen = pz.keyCollected;
+  } else if (lv === 9) {
+    pz.doorOpen = pz.plates[0] && pz.plates[1] && pz.keyCollected;
+  } else if (lv === 10) {
+    pz.doorOpen = pz.keyCollected && pz.nextPlateIdx === 4;
+  } else {
+    pz.doorOpen = false;
+  }
 }
 
 function checkLevelDone(room) {
@@ -71,25 +86,27 @@ function checkLevelDone(room) {
   }
 }
 
-wss.on('connection', (ws) => {
-  let roomCode = null, playerId = null;
+wss.on('connection', function(ws) {
+  let roomCode = null;
+  let playerId = null;
 
-  ws.on('message', (raw) => {
+  ws.on('message', function(raw) {
     let msg;
-    try { msg = JSON.parse(raw); } catch { return; }
+    try { msg = JSON.parse(raw); } catch (e) { return; }
 
     if (msg.type === 'create') {
       const code = genCode();
-      roomCode = code; playerId = 'p1';
+      roomCode = code;
+      playerId = 'p1';
       const room = {
-        code,
-        players: new Map([[playerId, { id: playerId, color: msg.color, ws }]]),
+        code: code,
+        players: new Map([[playerId, { id: playerId, color: msg.color, ws: ws }]]),
         level: 1,
         lastLevelDone: 0
       };
       resetPuzzle(room);
       rooms.set(code, room);
-      ws.send(JSON.stringify({ type: 'created', code, playerId }));
+      ws.send(JSON.stringify({ type: 'created', code: code, playerId: playerId }));
       return;
     }
 
@@ -97,13 +114,14 @@ wss.on('connection', (ws) => {
       const room = rooms.get(msg.code);
       if (!room) { ws.send(JSON.stringify({ type: 'error', message: 'Комната не найдена' })); return; }
       if (room.players.size >= 2) { ws.send(JSON.stringify({ type: 'error', message: 'Комната заполнена' })); return; }
-      roomCode = msg.code; playerId = 'p2';
+      roomCode = msg.code;
+      playerId = 'p2';
       const p1 = room.players.get('p1');
-      room.players.set(playerId, { id: playerId, color: msg.color, ws });
+      room.players.set(playerId, { id: playerId, color: msg.color, ws: ws });
       ws.send(JSON.stringify({
         type: 'joined',
         code: room.code,
-        playerId,
+        playerId: playerId,
         level: room.level,
         puzzle: room.puzzle,
         otherColor: p1.color
@@ -124,8 +142,9 @@ wss.on('connection', (ws) => {
 
     if (msg.type === 'state') {
       for (const p of room.players.values()) {
-        if (p.id !== playerId && p.ws.readyState === 1)
+        if (p.id !== playerId && p.ws.readyState === 1) {
           p.ws.send(JSON.stringify({ type: 'state', data: msg.data }));
+        }
       }
       return;
     }
@@ -133,18 +152,17 @@ wss.on('connection', (ws) => {
     if (msg.type === 'event') {
       let changed = false;
       const pz = room.puzzle;
+      const lv = room.level;
 
       if (msg.event === 'key' && !pz.keyCollected) {
         pz.keyCollected = true;
         updateDoor(room);
         changed = true;
-      }
-           else if (msg.event === 'plate') {
+      } else if (msg.event === 'plate') {
         const i = msg.index;
         if (i >= 0 && i < 4 && !pz.plates[i]) {
-          const lv = room.level;
           const seqLevels = [2, 5, 10];
-          if (seqLevels.includes(lv)) {
+          if (seqLevels.indexOf(lv) >= 0) {
             if (i === pz.plateSequence[pz.nextPlateIdx]) {
               pz.plates[i] = true;
               pz.nextPlateIdx++;
@@ -158,37 +176,21 @@ wss.on('connection', (ws) => {
           updateDoor(room);
           changed = true;
         }
-      }
-        const i = msg.index;
-        if (i >= 0 && i < 4 && !pz.plates[i]) {
-          if (i === pz.plateSequence[pz.nextPlateIdx]) {
-            pz.plates[i] = true;
-            pz.nextPlateIdx++;
-          } else {
-            pz.plates = [false, false, false, false];
-            pz.nextPlateIdx = 0;
-          }
-          updateDoor(room);
-          changed = true;
-        }
-      }
-      else if (msg.event === 'lever' && !pz.leverPulled) {
+      } else if (msg.event === 'lever' && !pz.leverPulled) {
         pz.leverPulled = true;
         updateDoor(room);
         changed = true;
-      }
-      else if (msg.event === 'sync') {
+      } else if (msg.event === 'sync') {
         pz.levers[msg.which] = true;
         updateDoor(room);
         changed = true;
-        setTimeout(() => {
+        setTimeout(function() {
           const r = rooms.get(roomCode);
           if (!r || r.level !== 4 || r.puzzle.doorOpen) return;
           r.puzzle.levers = [false, false];
           broadcast(r, { type: 'puzzle', state: r.puzzle });
         }, 3000);
-      }
-      else if (msg.event === 'door') {
+      } else if (msg.event === 'door') {
         room.doorState[playerId] = msg.value;
         checkLevelDone(room);
         return;
@@ -201,7 +203,7 @@ wss.on('connection', (ws) => {
     }
   });
 
-  ws.on('close', () => {
+  ws.on('close', function() {
     if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
@@ -211,4 +213,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-server.listen(PORT, () => console.log(`🎮 ZONA78 запущен на http://localhost:${PORT}`));
+server.listen(PORT, function() {
+  console.log('🎮 ZONA78 запущен на http://localhost:' + PORT);
+});
