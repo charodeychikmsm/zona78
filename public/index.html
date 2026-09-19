@@ -288,11 +288,6 @@ function loadLevel(n) {
     other.x = other.targetX = lvl.spawn[o].x;
     other.y = other.targetY = lvl.spawn[o].y;
   }
-  puzzle = { keyCollected:false, doorOpen:false, plates:[false,false,false,false],
-    plateSequence:[0,1,2,3], nextPlateIdx:0, leverPulled:false, levers:[false,false] };
-  atPlate = [false,false,false,false];
-  atSyncLever = [false,false];
-  atDoor.me = false;
   document.getElementById('hud-level').textContent = n;
   document.getElementById('hud-level-name').textContent = lvl.name;
   showHint(lvl.hint);
@@ -623,7 +618,6 @@ function draw() {
     if (lvl.lever && !puzzle.leverPulled) drawLever(lvl.lever.x, lvl.lever.y, lvl.lever.w, lvl.lever.h);
     if (lvl.torches) for (const t of lvl.torches) drawTorch(t.x, t.y);
 
-    // Частицы (за персонажами)
     for (const p of particles) {
       ctx.globalAlpha = p.life * (p.ambient ? 0.7 : 1);
       ctx.fillStyle = p.color;
@@ -637,14 +631,12 @@ function draw() {
 
   ctx.restore();
 
-  // Виньетка
   const vg = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height/3,
     canvas.width/2, canvas.height/2, canvas.height);
   vg.addColorStop(0, 'rgba(0,0,0,0)');
   vg.addColorStop(1, 'rgba(0,0,0,0.75)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Шёпот
   if (whisper) {
     ctx.globalAlpha = whisper.life * 0.7;
     ctx.fillStyle = '#aa8866';
@@ -752,7 +744,6 @@ function loop(now) {
   }
   updateParticles(dt);
 
-  // Шёпот
   whisperTimer -= dt;
   if (whisper) {
     whisper.life -= dt * 0.25;
