@@ -47,6 +47,7 @@ function updateDoor(room) {
   else pz.doorOpen = false;
 }
 function resetPuzzle(room) {
+  const wasOpen = room.puzzle && room.puzzle.doorOpen;
   room.puzzle = {
     keyCollected: false, doorOpen: false,
     plates: [false, false, false, false],
@@ -55,6 +56,10 @@ function resetPuzzle(room) {
   };
   room.doorState = { p1: false, p2: false };
   updateDoor(room);
+  // Если дверь стала открыта — сообщаем клиентам (для звука)
+  if (room.puzzle.doorOpen && !wasOpen) {
+    broadcast(room, { type: 'doorOpened' });
+  }
 }
 function checkLevelDone(room) {
   if (room.puzzle.doorOpen && room.doorState.p1 && room.doorState.p2) {
@@ -67,6 +72,14 @@ function checkLevelDone(room) {
     }
   }
 }
+
+// ============ ОРУЖИЕ ============
+var WEAPONS = {
+  pistol:  { name: 'Пистолет', dmg: 1, cd: 350, speed: 800,  spread: 0,    bullets: 1 },
+  shotgun: { name: 'Дробовик', dmg: 1, cd: 900, speed: 700,  spread: 0.3,  bullets: 3 },
+  ak:      { name: 'Автомат',  dmg: 1, cd: 200, speed: 1000, spread: 0.08, bullets: 1 },
+  hp:      { name: 'Аптечка',  dmg: 0, cd: 0,   speed: 0,    spread: 0,    bullets: 0 }
+};
 
 // ============ PVP ============
 function initPvp(room) {
@@ -81,6 +94,7 @@ function initPvp(room) {
     p.angle = 0;
     p.facing = i === 0 ? 1 : -1;
     p.walkPhase = 0;
+    p.weapon = p.weapon || 'pistol';
     i++;
   }
 }
@@ -138,7 +152,7 @@ setInterval(function () {
         id: p.id, color: p.color,
         x: p.x, y: p.y, angle: p.angle || 0,
         facing: p.facing || 1, walkPhase: p.walkPhase || 0,
-        hp: p.hp || 5, kills: p.kills || 0
+        hp: p.hp || 5, kills: p.kills || 0, weapon: p.weapon || 'pistol'
       });
     }
     broadcast(room, {
@@ -220,20 +234,39 @@ wss.on('connection', function (ws) {
       return;
     }
 
+    if (msg.type === 'weapon' && room.mode === 'pvp') {
+      const p = room.players.get(playerId);
+      if (!p) return;
+      var w = WEAPONS[msg.weapon];
+      if (!w) return;
+      p.weapon = msg.weapon;
+      if (msg.weapon === 'hp') {
+        p.hp = Math.min(5, (p.hp || 5) + 3);
+        p.weapon = 'pistol';
+      }
+      broadcast(room, { type: 'pvpWeapon', id: playerId, weapon: p.weapon, hp: p.hp });
+      return;
+    }
+
     if (msg.type === 'shoot' && room.mode === 'pvp' && room.pvp && !room.pvp.winner) {
       const p = room.players.get(playerId);
       if (!p) return;
+      var w = WEAPONS[p.weapon || 'pistol'] || WEAPONS.pistol;
+      if (w.dmg === 0) return;
       const now = Date.now();
-      if (now - (p.lastShot || 0) < 350) return;
+      if (now - (p.lastShot || 0) < w.cd) return;
       p.lastShot = now;
       const a = msg.angle || 0;
-      room.pvp.bullets.push({
-        owner: playerId,
-        x: p.x + 13, y: p.y + 20,
-        vx: Math.cos(a) * 800,
-        vy: Math.sin(a) * 800,
-        ttl: 1.2
-      });
+      for (var k = 0; k < w.bullets; k++) {
+        var spread = w.spread > 0 ? (Math.random() - 0.5) * w.spread * 2 : 0;
+        room.pvp.bullets.push({
+          owner: playerId,
+          x: p.x + 13, y: p.y + 20,
+          vx: Math.cos(a + spread) * w.speed,
+          vy: Math.sin(a + spread) * w.speed,
+          ttl: 1.2
+        });
+      }
       return;
     }
 
@@ -241,6 +274,7 @@ wss.on('connection', function (ws) {
       let changed = false;
       const pz = room.puzzle;
       const lv = room.level;
+      const wasDoorOpen = pz.doorOpen;
 
       if (msg.event === 'death') {
         const now = Date.now();
@@ -276,7 +310,14 @@ wss.on('connection', function (ws) {
         checkLevelDone(room);
         return;
       }
-      if (changed) { broadcast(room, { type: 'puzzle', state: pz }); checkLevelDone(room); }
+      if (changed) {
+        // Если дверь стала открыта — сообщаем отдельным событием
+        if (!wasDoorOpen && pz.doorOpen) {
+          broadcast(room, { type: 'doorOpened' });
+        }
+        broadcast(room, { type: 'puzzle', state: pz });
+        checkLevelDone(room);
+      }
     }
   });
 
